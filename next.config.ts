@@ -5,7 +5,7 @@ const baseConfig: NextConfig = {
   reactStrictMode: true,
 };
 
-const finalConfig = withPWA({
+export default withPWA({
   dest: "public",
   register: true,
   disable: process.env.NODE_ENV === "development",
@@ -42,20 +42,3 @@ const finalConfig = withPWA({
     ],
   },
 })(baseConfig);
-
-// Fix: @opentelemetry/api (bundled via ncc by next-auth) uses __dirname
-// which is undefined in Vercel's Edge Runtime on Linux. We patch the
-// webpack function AFTER withPWA wraps the config so the DefinePlugin
-// is guaranteed to run regardless of how withPWA chains webpack.
-const pwaWebpack = finalConfig.webpack;
-finalConfig.webpack = function (config, options) {
-  const result = pwaWebpack ? pwaWebpack(config, options) : config;
-  if (options.nextRuntime === "edge") {
-    result.plugins.push(
-      new options.webpack.DefinePlugin({ __dirname: JSON.stringify("/") })
-    );
-  }
-  return result;
-};
-
-export default finalConfig;
