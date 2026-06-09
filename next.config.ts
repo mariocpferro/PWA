@@ -1,24 +1,11 @@
 import type { NextConfig } from "next";
 import withPWA from "@ducanh2912/next-pwa";
 
-const nextConfig: NextConfig = {
+const baseConfig: NextConfig = {
   reactStrictMode: true,
-  webpack(config, { nextRuntime, webpack }) {
-    if (nextRuntime === "edge") {
-      // Fix: __dirname is not defined in Vercel's Edge Runtime.
-      // Next.js bundles @opentelemetry/api which contains:
-      //   __nccwpck_require__.ab = __dirname + "/"
-      // On Windows the webpack DefinePlugin already replaces __dirname with "/",
-      // but on Linux (Vercel) it doesn't — this explicitly covers that case.
-      config.plugins.push(
-        new webpack.DefinePlugin({ __dirname: JSON.stringify("/") })
-      );
-    }
-    return config;
-  },
 };
 
-export default withPWA({
+const finalConfig = withPWA({
   dest: "public",
   register: true,
   disable: process.env.NODE_ENV === "development",
@@ -54,4 +41,21 @@ export default withPWA({
       },
     ],
   },
-})(nextConfig);
+})(baseConfig);
+
+// Fix: @opentelemetry/api (bundled via ncc by next-auth) uses __dirname
+// which is undefined in Vercel's Edge Runtime on Linux. We patch the
+// webpack function AFTER withPWA wraps the config so the DefinePlugin
+// is guaranteed to run regardless of how withPWA chains webpack.
+const pwaWebpack = finalConfig.webpack;
+finalConfig.webpack = function (config, options) {
+  const result = pwaWebpack ? pwaWebpack(config, options) : config;
+  if (options.nextRuntime === "edge") {
+    result.plugins.push(
+      new options.webpack.DefinePlugin({ __dirname: JSON.stringify("/") })
+    );
+  }
+  return result;
+};
+
+export default finalConfig;
