@@ -4,12 +4,22 @@ import { useRef, useState } from "react";
 
 interface FileUploadFieldProps {
   onFileChange: (file: File | null) => void;
+  resetKey?: number;
 }
 
-export function FileUploadField({ onFileChange }: FileUploadFieldProps) {
+export function FileUploadField({ onFileChange, resetKey }: FileUploadFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+
+  // Reset internal state when parent signals a form reset
+  const prevResetKey = useRef(resetKey);
+  if (prevResetKey.current !== resetKey) {
+    prevResetKey.current = resetKey;
+    setPreview(null);
+    setFileName(null);
+    if (inputRef.current) inputRef.current.value = "";
+  }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] ?? null;

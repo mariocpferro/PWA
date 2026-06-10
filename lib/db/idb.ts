@@ -10,6 +10,8 @@ export interface OfflineReceipt {
   fileName?: string;
   fileBase64?: string;
   fileMimeType?: string;
+  latitude?: number;
+  longitude?: number;
   status: OfflineReceiptStatus;
   createdAt: string;
   retryCount: number;

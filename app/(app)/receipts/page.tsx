@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { ReceiptForm } from "@/components/receipts/ReceiptForm";
 import { ReceiptList } from "@/components/receipts/ReceiptList";
+import { OfflineReceiptList } from "@/components/receipts/OfflineReceiptList";
 
 export default async function ReceiptsPage() {
   const session = await auth();
@@ -26,7 +27,10 @@ export default async function ReceiptsPage() {
         <h2 className="text-lg font-semibold text-gray-700 mb-3">
           Recentes
         </h2>
-        <ReceiptList receipts={receipts} />
+        <div className="space-y-2">
+          <OfflineReceiptList />
+          <ReceiptList receipts={receipts} />
+        </div>
       </div>
     </div>
   );

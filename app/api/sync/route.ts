@@ -2,8 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { syncBatchSchema } from "@/lib/validations/receipt";
-import { put } from "@vercel/blob";
 import { randomUUID } from "crypto";
+import { writeFile, mkdir } from "fs/promises";
+import { join } from "path";
+
+async function saveFile(buffer: Buffer, userId: string, originalName: string): Promise<string> {
+  const ext = originalName.split(".").pop();
+  const filename = `${randomUUID()}.${ext}`;
+  const dir = join(process.cwd(), "public", "uploads", "receipts", userId);
+  await mkdir(dir, { recursive: true });
+  await writeFile(join(dir, filename), buffer);
+  return `/api/uploads/receipts/${userId}/${filename}`;
+}
 
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -25,10 +35,7 @@ export async function POST(req: NextRequest) {
 
       if (item.fileBase64 && item.fileName) {
         const buffer = Buffer.from(item.fileBase64, "base64");
-        const ext = item.fileName.split(".").pop();
-        const uniqueName = `receipts/${session.user.id}/${randomUUID()}.${ext}`;
-        const blob = await put(uniqueName, buffer, { access: "public" });
-        filePath = blob.url;
+        filePath = await saveFile(buffer, session.user.id, item.fileName);
         fileName = item.fileName;
       }
 
@@ -40,6 +47,8 @@ export async function POST(req: NextRequest) {
           date: new Date(item.date),
           filePath,
           fileName,
+          latitude: item.latitude,
+          longitude: item.longitude,
         },
       });
 

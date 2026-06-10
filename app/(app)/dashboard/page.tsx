@@ -6,19 +6,18 @@ import { CategoryBreakdown } from "@/components/dashboard/CategoryBreakdown";
 
 function getStartOf(unit: "day" | "week" | "month" | "year"): Date {
   const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  const d = now.getDate();
   switch (unit) {
     case "day":
-      return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    case "week": {
-      const d = new Date(now);
-      d.setDate(d.getDate() - d.getDay());
-      d.setHours(0, 0, 0, 0);
-      return d;
-    }
+      return new Date(Date.UTC(y, m, d));
+    case "week":
+      return new Date(Date.UTC(y, m, d - now.getDay()));
     case "month":
-      return new Date(now.getFullYear(), now.getMonth(), 1);
+      return new Date(Date.UTC(y, m, 1));
     case "year":
-      return new Date(now.getFullYear(), 0, 1);
+      return new Date(Date.UTC(y, 0, 1));
   }
 }
 

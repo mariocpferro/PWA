@@ -16,6 +16,8 @@ export const receiptSchema = z.object({
   fileName: z.string().optional(),
   fileBase64: z.string().optional(),
   fileMimeType: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
 });
 
 export const syncBatchSchema = z.object({

@@ -1,7 +1,15 @@
 import type { NextAuthConfig } from "next-auth";
+import Keycloak from "next-auth/providers/keycloak";
 
 export const authConfig: NextAuthConfig = {
-  providers: [],
+  trustHost: true,
+  providers: [
+    Keycloak({
+      clientId: process.env.AUTH_AMEI_CLIENT_ID!,
+      clientSecret: process.env.AUTH_AMEI_CLIENT_SECRET ?? "",
+      issuer: process.env.AUTH_AMEI_ISSUER!,
+    }),
+  ],
   pages: {
     signIn: "/login",
   },
@@ -14,6 +22,7 @@ export const authConfig: NextAuthConfig = {
       const isPublicAsset =
         nextUrl.pathname.startsWith("/_next") ||
         nextUrl.pathname.startsWith("/icons") ||
+        nextUrl.pathname.startsWith("/uploads") ||
         nextUrl.pathname === "/manifest.json" ||
         nextUrl.pathname === "/favicon.ico";
 
